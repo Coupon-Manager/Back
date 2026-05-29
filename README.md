@@ -8,6 +8,7 @@ API server for managing supermarket coupon barcodes received via SMS and email.
 - **SQLModel** — ORM (built on SQLAlchemy + Pydantic)
 - **PostgreSQL** — database
 - **Docker** — local development and deployment (target: Raspberry Pi)
+- **Cloudflare Tunnel** — public HTTPS access without port forwarding
 
 ## Project Structure
 
@@ -16,8 +17,8 @@ back/
 ├── api/          # FastAPI route handlers
 ├── models/       # SQLModel table definitions
 ├── services/     # business logic
-├── parsers/      # SMS/email parsing + barcode image code extraction (Phase 3)
-├── workers/      # async background jobs
+├── parsers/      # email body parsing
+├── workers/      # background jobs (email import)
 ├── main.py       # FastAPI app entry point
 └── database.py   # engine + session setup
 ```
@@ -36,8 +37,9 @@ back/
 |---|---|---|
 | id | int (PK) | |
 | supplier_id | int (FK) | |
+| group_id | int (FK) | planned — see Roadmap |
 | value | int | coupon value in NIS |
-| code | str? | numeric code parsed from barcode image (Phase 3) |
+| code | str? (unique) | numeric code parsed from email |
 | used | bool | |
 | created_at | datetime | |
 | used_at | datetime? | |
@@ -50,6 +52,19 @@ back/
 | email | str (unique) |
 | password_hash | str |
 
+### Group _(planned)_
+| Field | Type |
+|---|---|
+| id | int (PK) |
+| name | str |
+| created_by_id | int (FK → User) |
+
+### GroupMember _(planned)_
+| Field | Type |
+|---|---|
+| group_id | int (FK → Group) |
+| user_id | int (FK → User) |
+
 ## Authentication
 
 JWT-based. All endpoints are protected.
@@ -57,49 +72,57 @@ JWT-based. All endpoints are protected.
 - `POST /auth/register` — create account
 - `POST /auth/login` — returns JWT token
 
-Currently all users share access to the same coupon pool (shared household model). Per-user coupon visibility and permissions are planned for a future version.
+Currently all users share access to the same coupon pool. The group model (see Roadmap) will scope coupon visibility per group.
 
 ## API Endpoints
 
 | Method | Path | Description |
 |---|---|---|
+| POST | `/suppliers` | Create a supplier |
 | GET | `/suppliers` | All suppliers with available balance |
 | GET | `/suppliers/{id}/coupons` | All coupons for a supplier |
 | POST | `/coupons` | Add a coupon manually |
-| PATCH | `/coupons/{id}/use` | Mark a coupon as used |
+| PATCH | `/coupons/{id}/use` | Toggle coupon used/unused |
+| POST | `/import/email` | Manually trigger email import |
 
-## Coupon Ingestion Phases
+## Coupon Ingestion
 
-### Phase 1 — Manual
-User enters supplier, value, and coupon code directly.
+### Manual
+User enters supplier, value, and coupon code directly via `POST /coupons`.
 
-### Phase 2 — Email Auto Import
-App polls a dedicated inbox and extracts supplier and value from SMS/email text. Coupon code extraction handled in Phase 3.
+### Email Auto Import
+Connects to a Gmail inbox via IMAP, parses unread emails from coupon providers, extracts supplier name, value, and numeric coupon code, then creates coupons automatically. Triggered manually via `POST /import/email` or automatically once a day via APScheduler.
 
-### Phase 3 — Barcode Image Code Parsing
-Parses the numeric coupon code from barcode images (received via email or uploaded manually). Stores result in `Coupon.code`.
+Email format supported: Cibus/supermarket coupon emails (Hebrew).
+
+## Roadmap
+
+| # | Stage | Status |
+|---|-------|--------|
+| 1 | Models — Supplier, Coupon, User | ✅ |
+| 2 | JWT auth — register, login | ✅ |
+| 3 | REST endpoints — suppliers, coupons, use/unuse | ✅ |
+| 4 | Email import — IMAP + body parser, manual trigger | ✅ |
+| 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
+| 6 | Daily auto-import — APScheduler runs email import once a day | ⬜ |
+| 7 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
+| 8 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
 
 ## Local Development
 
 ### Prerequisites
 - Docker Desktop
-- Python 3.12+
+- Python 3.14+
 
 ### Setup
 
 ```bash
-# from repo root (barcode/)
-docker compose up -d          # start PostgreSQL
-
 cd back
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-
-python main.py                # starts FastAPI on http://localhost:8000
+cp .env.example .env   # fill in values
+docker compose up --build
 # Swagger UI: http://localhost:8000/docs
 ```
 
 ## Deployment
 
-Intended to run on a Raspberry Pi via Docker Compose.
+Runs on a Raspberry Pi via Docker Compose. Public access via Cloudflare Tunnel — set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`.
