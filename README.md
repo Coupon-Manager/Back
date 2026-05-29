@@ -106,7 +106,8 @@ Email format supported: Cibus/supermarket coupon emails (Hebrew).
 | 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
 | 6 | Daily auto-import — APScheduler runs email import once a day | ⬜ |
 | 7 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
-| 8 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
+| 8 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
+| 9 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
 
 ## Local Development
 
