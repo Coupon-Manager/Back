@@ -5,6 +5,7 @@ import models  # noqa: F401
 from api.auth import router as auth_router
 from api.suppliers import router as suppliers_router
 from api.coupons import router as coupons_router
+from api.import_email import router as import_router
 
 
 @asynccontextmanager
@@ -18,6 +19,7 @@ app = FastAPI(title="Barcode Coupon Manager", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(suppliers_router)
 app.include_router(coupons_router)
+app.include_router(import_router)
 
 
 if __name__ == "__main__":
