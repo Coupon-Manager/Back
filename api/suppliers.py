@@ -11,14 +11,12 @@ router = APIRouter(prefix="/suppliers", tags=["suppliers"])
 
 class CreateSupplierRequest(BaseModel):
     name: str
-    color: str | None = None
     logo_url: str | None = None
 
 
 class SupplierBalance(BaseModel):
     id: int
     name: str
-    color: str | None
     logo_url: str | None
     available_balance: int
 
@@ -29,7 +27,7 @@ def create_supplier(
     session: Session = Depends(get_session),
     _: User = Depends(get_current_user),
 ):
-    supplier = Supplier(name=body.name, color=body.color, logo_url=body.logo_url)
+    supplier = Supplier(name=body.name, logo_url=body.logo_url)
     session.add(supplier)
     session.commit()
     session.refresh(supplier)
