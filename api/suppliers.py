@@ -9,12 +9,31 @@ from api.deps import get_current_user
 router = APIRouter(prefix="/suppliers", tags=["suppliers"])
 
 
+class CreateSupplierRequest(BaseModel):
+    name: str
+    color: str | None = None
+    logo_url: str | None = None
+
+
 class SupplierBalance(BaseModel):
     id: int
     name: str
     color: str | None
     logo_url: str | None
     available_balance: int
+
+
+@router.post("", response_model=Supplier, status_code=status.HTTP_201_CREATED)
+def create_supplier(
+    body: CreateSupplierRequest,
+    session: Session = Depends(get_session),
+    _: User = Depends(get_current_user),
+):
+    supplier = Supplier(name=body.name, color=body.color, logo_url=body.logo_url)
+    session.add(supplier)
+    session.commit()
+    session.refresh(supplier)
+    return supplier
 
 
 @router.get("", response_model=list[SupplierBalance])
