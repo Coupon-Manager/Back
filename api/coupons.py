@@ -2,7 +2,8 @@ from __future__ import annotations
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlmodel import Session
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, select
 from database import get_session
 from models import User, Coupon
 from api.deps import get_current_user
@@ -29,7 +30,11 @@ def create_coupon(
         added_by_id=current_user.id,
     )
     session.add(coupon)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Coupon code already exists")
     session.refresh(coupon)
     return coupon
 

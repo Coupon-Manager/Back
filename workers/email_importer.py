@@ -67,6 +67,13 @@ def import_emails(session: Session, added_by_id: int) -> dict:
             skipped += 1
             continue
 
+        if parsed.code:
+            existing = session.exec(select(Coupon).where(Coupon.code == parsed.code)).first()
+            if existing:
+                skipped += 1
+                mail.store(uid, "+FLAGS", "\\Seen")
+                continue
+
         supplier = _get_or_create_supplier(session, parsed.supplier_name)
         coupon = Coupon(
             supplier_id=supplier.id,
