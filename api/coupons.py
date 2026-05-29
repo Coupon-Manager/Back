@@ -40,7 +40,7 @@ def create_coupon(
 
 
 @router.patch("/{coupon_id}/use", response_model=Coupon)
-def use_coupon(
+def toggle_coupon_used(
     coupon_id: int,
     session: Session = Depends(get_session),
     _: User = Depends(get_current_user),
@@ -48,10 +48,27 @@ def use_coupon(
     coupon = session.get(Coupon, coupon_id)
     if not coupon:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coupon not found")
-    if coupon.used:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Coupon already used")
-    coupon.used = True
-    coupon.used_at = datetime.utcnow()
+    coupon.used = not coupon.used
+    coupon.used_at = datetime.utcnow() if coupon.used else None
+    session.add(coupon)
+    session.commit()
+    session.refresh(coupon)
+    return coupon
+
+
+@router.patch("/{coupon_id}/unuse", response_model=Coupon)
+def unuse_coupon(
+    coupon_id: int,
+    session: Session = Depends(get_session),
+    _: User = Depends(get_current_user),
+):
+    coupon = session.get(Coupon, coupon_id)
+    if not coupon:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coupon not found")
+    if not coupon.used:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Coupon is not used")
+    coupon.used = False
+    coupon.used_at = None
     session.add(coupon)
     session.commit()
     session.refresh(coupon)
