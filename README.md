@@ -29,7 +29,6 @@ back/
 |---|---|
 | id | int (PK) |
 | name | str |
-| color | str? |
 | logo_url | str? |
 
 ### Coupon

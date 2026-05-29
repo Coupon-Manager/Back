@@ -50,7 +50,6 @@ def list_suppliers(
         result.append(SupplierBalance(
             id=s.id,
             name=s.name,
-            color=s.color,
             logo_url=s.logo_url,
             available_balance=balance,
         ))
