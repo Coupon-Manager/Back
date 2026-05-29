@@ -57,7 +57,7 @@ JWT-based. All endpoints are protected.
 - `POST /auth/register` — create account
 - `POST /auth/login` — returns JWT token
 
-All users share access to the same coupon pool (shared household model).
+Currently all users share access to the same coupon pool (shared household model). Per-user coupon visibility and permissions are planned for a future version.
 
 ## API Endpoints
 
