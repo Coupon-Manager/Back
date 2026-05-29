@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://barcode:barcode@localhost:5432/barcode")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://coupon:coupon@localhost:5432/coupon")
 
 engine = create_engine(DATABASE_URL)
 
