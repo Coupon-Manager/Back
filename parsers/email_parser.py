@@ -20,7 +20,7 @@ def parse_coupon_email(body: str) -> ParsedCoupon | None:
     if not supplier_match or not value_match:
         return None
 
-    supplier_name = supplier_match.group(1).strip()
+    supplier_name = supplier_match.group(1).strip().removesuffix(" שוברים")
     value = round(float(value_match.group(1)))
 
     code_match = CODE_RE.search(body)
