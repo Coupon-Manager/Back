@@ -27,6 +27,9 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       GMAIL_USER: ${GMAIL_USER}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      ALLOWED_EMAILS: ${ALLOWED_EMAILS}
+      SYSTEM_USER_ID: ${SYSTEM_USER_ID:-1}
     volumes:
       - .:/app
     depends_on:
