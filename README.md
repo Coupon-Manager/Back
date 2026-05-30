@@ -111,8 +111,9 @@ Email format supported: Cibus/supermarket coupon emails (Hebrew).
 | 7 | Supplier logos — upload via API, stored on Cloudflare R2, served from assets.yam-ti.com | ⬜ |
 | 8 | UTC timestamps — return timezone-aware datetimes so FE can convert to local time correctly | ⬜ |
 | 9 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
-| 10 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
-| 11 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
+| 10 | Coupon code encryption — AES encryption at rest; key in `.env` now, KMS at scale | ⬜ |
+| 11 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
+| 12 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
 
 ## Local Development
 
