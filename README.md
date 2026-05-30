@@ -108,9 +108,11 @@ Email format supported: Cibus/supermarket coupon emails (Hebrew).
 | 4 | Email import — IMAP + body parser, manual trigger | ✅ |
 | 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
 | 6 | Daily auto-import — APScheduler runs email import once a day | ✅ |
-| 7 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
-| 8 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
-| 9 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
+| 7 | Supplier logos — upload via API, stored on Cloudflare R2, served from assets.yam-ti.com | ⬜ |
+| 8 | UTC timestamps — return timezone-aware datetimes so FE can convert to local time correctly | ⬜ |
+| 9 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
+| 10 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
+| 11 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
 
 ## Local Development
 
