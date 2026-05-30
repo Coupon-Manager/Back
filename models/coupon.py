@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
 
 
@@ -10,6 +10,6 @@ class Coupon(SQLModel, table=True):
     value: int
     code: Optional[str] = Field(default=None, unique=True)
     used: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     used_at: Optional[datetime] = None
     added_by_id: int = Field(foreign_key="user.id")

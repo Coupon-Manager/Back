@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -49,7 +49,7 @@ def toggle_coupon_used(
     if not coupon:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coupon not found")
     coupon.used = not coupon.used
-    coupon.used_at = datetime.utcnow() if coupon.used else None
+    coupon.used_at = datetime.now(timezone.utc) if coupon.used else None
     session.add(coupon)
     session.commit()
     session.refresh(coupon)

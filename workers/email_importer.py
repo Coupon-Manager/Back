@@ -2,7 +2,7 @@ from __future__ import annotations
 import email
 import imaplib
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from email.header import decode_header
 
 from sqlmodel import Session, select
@@ -93,7 +93,7 @@ def import_emails(session: Session, added_by_id: int) -> dict:
         session.add(coupon)
         imported.append(coupon)
 
-    user.last_email_sync = datetime.utcnow()
+    user.last_email_sync = datetime.now(timezone.utc)
     session.add(user)
     session.commit()
     for c in imported:
