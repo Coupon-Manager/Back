@@ -30,7 +30,6 @@ back/
 |---|---|
 | id | int (PK) |
 | name | str |
-| logo_url | str? |
 
 ### Coupon
 | Field | Type | Notes |
@@ -108,7 +107,7 @@ Email format supported: Cibus/supermarket coupon emails (Hebrew).
 | 4 | Email import — IMAP + body parser, manual trigger | ✅ |
 | 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
 | 6 | Daily auto-import — APScheduler runs email import once a day | ✅ |
-| 7 | Supplier logos — upload via API, stored on Cloudflare R2, served from assets.yam-ti.com | ⬜ |
+| 7 | Supplier logos | 🔲 |
 | 8 | UTC timestamps — return timezone-aware datetimes so FE can convert to local time correctly | ✅ |
 | 9 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
 | 10 | Coupon code encryption — AES encryption at rest; key in `.env` now, KMS at scale | ⬜ |
