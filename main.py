@@ -10,6 +10,7 @@ from api.suppliers import router as suppliers_router
 from api.coupons import router as coupons_router
 from api.import_email import router as import_router
 from workers.email_importer import import_emails
+from scripts.backup import backup
 
 SYSTEM_USER_ID = int(os.getenv("SYSTEM_USER_ID", "1"))
 
@@ -19,11 +20,19 @@ def scheduled_email_import():
         import_emails(session, added_by_id=SYSTEM_USER_ID)
 
 
+def scheduled_backup():
+    try:
+        backup()
+    except Exception as e:
+        print(f"Scheduled backup failed: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
     scheduler = BackgroundScheduler()
     scheduler.add_job(scheduled_email_import, "cron", hour=6)
+    scheduler.add_job(scheduled_backup, "cron", hour=2)
     scheduler.start()
     yield
     scheduler.shutdown()
