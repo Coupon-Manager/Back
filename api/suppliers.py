@@ -1,9 +1,10 @@
 from __future__ import annotations
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import Session, select, func
 from database import get_session
-from models import User, Supplier, Coupon
+from models import User, Supplier, Coupon, UserSupplierPreference
 from api.deps import get_current_user
 
 router = APIRouter(prefix="/suppliers", tags=["suppliers"])
@@ -13,9 +14,14 @@ class CreateSupplierRequest(BaseModel):
     name: str
 
 
+class SupplierPreferenceRequest(BaseModel):
+    color: Optional[str] = None
+
+
 class SupplierBalance(BaseModel):
     id: int
     name: str
+    color: Optional[str]
     available_balance: int
 
 
@@ -32,10 +38,34 @@ def create_supplier(
     return supplier
 
 
+@router.patch("/{supplier_id}/preference", response_model=SupplierBalance)
+def set_supplier_preference(
+    supplier_id: int,
+    body: SupplierPreferenceRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    supplier = session.get(Supplier, supplier_id)
+    if not supplier:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found")
+    pref = session.get(UserSupplierPreference, (current_user.id, supplier_id))
+    if not pref:
+        pref = UserSupplierPreference(user_id=current_user.id, supplier_id=supplier_id)
+    pref.color = body.color
+    session.add(pref)
+    session.commit()
+    balance = session.exec(
+        select(func.coalesce(func.sum(Coupon.value), 0))
+        .where(Coupon.supplier_id == supplier_id)
+        .where(Coupon.used == False)
+    ).one()
+    return SupplierBalance(id=supplier.id, name=supplier.name, color=pref.color, available_balance=balance)
+
+
 @router.get("", response_model=list[SupplierBalance])
 def list_suppliers(
     session: Session = Depends(get_session),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     suppliers = session.exec(select(Supplier)).all()
     result = []
@@ -45,7 +75,13 @@ def list_suppliers(
             .where(Coupon.supplier_id == s.id)
             .where(Coupon.used == False)
         ).one()
-        result.append(SupplierBalance(id=s.id, name=s.name, available_balance=balance))
+        pref = session.get(UserSupplierPreference, (current_user.id, s.id))
+        result.append(SupplierBalance(
+            id=s.id,
+            name=s.name,
+            color=pref.color if pref else None,
+            available_balance=balance,
+        ))
     return result
 
 
