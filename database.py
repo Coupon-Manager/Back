@@ -1,5 +1,7 @@
 import os
-from sqlmodel import SQLModel, create_engine, Session
+from typing import Any
+from sqlalchemy import Column, DateTime
+from sqlmodel import SQLModel, Field, create_engine, Session
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,6 +9,10 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://coupon:coupon@localhost:5432/coupon")
 
 engine = create_engine(DATABASE_URL)
+
+
+def UTCDateTimeField(**kwargs: Any) -> Any:
+    return Field(sa_column=Column(DateTime(timezone=True)), **kwargs)
 
 
 def create_db_and_tables():
