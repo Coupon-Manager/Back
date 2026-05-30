@@ -1,8 +1,11 @@
 from __future__ import annotations
+import os
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import Session, select
+
+ALLOWED_EMAILS = set(os.getenv("ALLOWED_EMAILS", "").split(","))
 from database import get_session
 from models import User
 from services.auth import hash_password, verify_password, create_access_token
@@ -34,6 +37,8 @@ class UserPublic(BaseModel):
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(body: RegisterRequest, session: Session = Depends(get_session)):
+    if body.email not in ALLOWED_EMAILS:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not allowed")
     existing = session.exec(select(User).where(User.email == body.email)).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
