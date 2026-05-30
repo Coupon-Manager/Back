@@ -51,6 +51,7 @@ back/
 | id | int (PK) |
 | email | str (unique) |
 | password_hash | str |
+| last_email_sync | datetime? |
 
 ### Group _(planned)_
 | Field | Type |
@@ -69,8 +70,9 @@ back/
 
 JWT-based. All endpoints are protected.
 
-- `POST /auth/register` — create account
+- `POST /auth/register` — create account (restricted to allowlisted emails via `ALLOWED_EMAILS` env var)
 - `POST /auth/login` — returns JWT token
+- `GET /auth/me` — returns current user's public info (id, email, last_email_sync)
 
 Currently all users share access to the same coupon pool. The group model (see Roadmap) will scope coupon visibility per group.
 
@@ -84,6 +86,7 @@ Currently all users share access to the same coupon pool. The group model (see R
 | POST | `/coupons` | Add a coupon manually |
 | PATCH | `/coupons/{id}/use` | Toggle coupon used/unused |
 | POST | `/import/email` | Manually trigger email import |
+| GET | `/auth/me` | Current user info including last sync time |
 
 ## Coupon Ingestion
 
@@ -104,7 +107,7 @@ Email format supported: Cibus/supermarket coupon emails (Hebrew).
 | 3 | REST endpoints — suppliers, coupons, use/unuse | ✅ |
 | 4 | Email import — IMAP + body parser, manual trigger | ✅ |
 | 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
-| 6 | Daily auto-import — APScheduler runs email import once a day | ⬜ |
+| 6 | Daily auto-import — APScheduler runs email import once a day | ✅ |
 | 7 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
 | 8 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
 | 9 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
