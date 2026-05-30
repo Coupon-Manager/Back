@@ -2,11 +2,12 @@ from __future__ import annotations
 import email
 import imaplib
 import os
+from datetime import datetime
 from email.header import decode_header
 
 from sqlmodel import Session, select
 
-from models import Coupon, Supplier
+from models import Coupon, Supplier, User
 from parsers.email_parser import ParsedCoupon, parse_coupon_email
 
 GMAIL_USER = os.getenv("GMAIL_USER", "")
@@ -46,11 +47,20 @@ def _get_or_create_supplier(session: Session, name: str) -> Supplier:
 
 
 def import_emails(session: Session, added_by_id: int) -> dict:
+    user = session.get(User, added_by_id)
+    if not user:
+        return {"imported": 0, "skipped": 0, "coupons": []}
+
     mail = imaplib.IMAP4_SSL(IMAP_HOST)
     mail.login(GMAIL_USER, GMAIL_APP_PASSWORD)
     mail.select("inbox")
 
-    _, message_ids = mail.search(None, "UNSEEN")
+    if user.last_email_sync:
+        since = user.last_email_sync.strftime("%d-%b-%Y")
+        _, message_ids = mail.search(None, f"SINCE {since}")
+    else:
+        _, message_ids = mail.search(None, "ALL")
+
     ids = message_ids[0].split()
 
     imported: list[Coupon] = []
@@ -71,7 +81,6 @@ def import_emails(session: Session, added_by_id: int) -> dict:
             existing = session.exec(select(Coupon).where(Coupon.code == parsed.code)).first()
             if existing:
                 skipped += 1
-                mail.store(uid, "+FLAGS", "\\Seen")
                 continue
 
         supplier = _get_or_create_supplier(session, parsed.supplier_name)
@@ -82,9 +91,10 @@ def import_emails(session: Session, added_by_id: int) -> dict:
             added_by_id=added_by_id,
         )
         session.add(coupon)
-        mail.store(uid, "+FLAGS", "\\Seen")
         imported.append(coupon)
 
+    user.last_email_sync = datetime.utcnow()
+    session.add(user)
     session.commit()
     for c in imported:
         session.refresh(c)

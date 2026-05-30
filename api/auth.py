@@ -1,10 +1,12 @@
 from __future__ import annotations
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import Session, select
 from database import get_session
 from models import User
 from services.auth import hash_password, verify_password, create_access_token
+from api.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,6 +24,12 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class UserPublic(BaseModel):
+    id: int
+    email: str
+    last_email_sync: datetime | None = None
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -42,3 +50,8 @@ def login(body: LoginRequest, session: Session = Depends(get_session)):
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     return TokenResponse(access_token=create_access_token(user.id))
+
+
+@router.get("/me", response_model=UserPublic)
+def me(current_user: User = Depends(get_current_user)):
+    return current_user
