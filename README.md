@@ -28,50 +28,56 @@ back/
 ## Data Models
 
 ### Supplier
-| Field | Type |
-|---|---|
-| id | int (PK) |
-| name | str |
+
+| Field | Type     |
+| ----- | -------- |
+| id    | int (PK) |
+| name  | str      |
 
 ### Coupon
-| Field | Type | Notes |
-|---|---|---|
-| id | int (PK) | |
-| supplier_id | int (FK) | |
-| value | int | coupon value in NIS |
-| code | str? (unique) | numeric code parsed from email |
-| used | bool | |
-| created_at | datetime (TIMESTAMPTZ) | |
-| used_at | datetime? (TIMESTAMPTZ) | |
-| added_by_id | int (FK) | |
+
+| Field       | Type                    | Notes                          |
+| ----------- | ----------------------- | ------------------------------ |
+| id          | int (PK)                |                                |
+| supplier_id | int (FK)                |                                |
+| value       | int                     | coupon value in NIS            |
+| code        | str? (unique)           | numeric code parsed from email |
+| used        | bool                    |                                |
+| created_at  | datetime (TIMESTAMPTZ)  |                                |
+| used_at     | datetime? (TIMESTAMPTZ) |                                |
+| added_by_id | int (FK)                |                                |
 
 ### User
-| Field | Type |
-|---|---|
-| id | int (PK) |
-| email | str (unique) |
-| password_hash | str |
+
+| Field           | Type                    |
+| --------------- | ----------------------- |
+| id              | int (PK)                |
+| email           | str (unique)            |
+| password_hash   | str                     |
 | last_email_sync | datetime? (TIMESTAMPTZ) |
 
 ### UserSupplierPreference
-| Field | Type | Notes |
-|---|---|---|
-| user_id | int (FK → User, PK) | |
-| supplier_id | int (FK → Supplier, PK) | |
-| color | str? | per-user display color (e.g. `#ff5733`) |
+
+| Field       | Type                    | Notes                                   |
+| ----------- | ----------------------- | --------------------------------------- |
+| user_id     | int (FK → User, PK)     |                                         |
+| supplier_id | int (FK → Supplier, PK) |                                         |
+| color       | str?                    | per-user display color (e.g. `#ff5733`) |
 
 ### Group _(planned)_
-| Field | Type |
-|---|---|
-| id | int (PK) |
-| name | str |
+
+| Field         | Type            |
+| ------------- | --------------- |
+| id            | int (PK)        |
+| name          | str             |
 | created_by_id | int (FK → User) |
 
 ### GroupMember _(planned)_
-| Field | Type |
-|---|---|
+
+| Field    | Type                 |
+| -------- | -------------------- |
 | group_id | int (FK → Group, PK) |
-| user_id | int (FK → User, PK) |
+| user_id  | int (FK → User, PK)  |
 
 ## Authentication
 
@@ -83,23 +89,25 @@ JWT-based. All endpoints are protected.
 
 ## API Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/suppliers` | Create a supplier |
-| GET | `/suppliers` | All suppliers with available balance and user's color |
-| PATCH | `/suppliers/{id}/preference` | Set per-user color for a supplier |
-| GET | `/suppliers/{id}/coupons` | All coupons for a supplier |
-| POST | `/coupons` | Add a coupon manually |
-| PATCH | `/coupons/{id}/use` | Toggle coupon used/unused |
-| POST | `/import/email` | Manually trigger email import |
-| GET | `/auth/me` | Current user info including last sync time |
+| Method | Path                         | Description                                           |
+| ------ | ---------------------------- | ----------------------------------------------------- |
+| POST   | `/suppliers`                 | Create a supplier                                     |
+| GET    | `/suppliers`                 | All suppliers with available balance and user's color |
+| PATCH  | `/suppliers/{id}/preference` | Set per-user color for a supplier                     |
+| GET    | `/suppliers/{id}/coupons`    | All coupons for a supplier                            |
+| POST   | `/coupons`                   | Add a coupon manually                                 |
+| PATCH  | `/coupons/{id}/use`          | Toggle coupon used/unused                             |
+| POST   | `/import/email`              | Manually trigger email import                         |
+| GET    | `/auth/me`                   | Current user info including last sync time            |
 
 ## Coupon Ingestion
 
 ### Manual
+
 User enters supplier, value, and coupon code directly via `POST /coupons`.
 
 ### Email Auto Import
+
 Connects to a Gmail inbox via IMAP, parses unread emails from coupon providers, extracts supplier name, value, and numeric coupon code, then creates coupons automatically. Triggered manually via `POST /import/email` or automatically once a day at 6am via APScheduler.
 
 Email format supported: Cibus/supermarket coupon emails (Hebrew).
@@ -117,28 +125,29 @@ Automated daily backup runs at 2am via APScheduler. Requires `R2_*` env vars to 
 
 ## Roadmap
 
-| # | Stage | Status |
-|---|-------|--------|
-| 1 | Models — Supplier, Coupon, User | ✅ |
-| 2 | JWT auth — register, login | ✅ |
-| 3 | REST endpoints — suppliers, coupons, use/unuse | ✅ |
-| 4 | Email import — IMAP + body parser, manual trigger | ✅ |
-| 5 | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi | ✅ |
-| 6 | Daily auto-import — APScheduler runs email import once a day | ✅ |
-| 7 | Supplier logos | 🔲 |
-| 8 | UTC timestamps — TIMESTAMPTZ columns, timezone-aware responses | ✅ |
-| 9 | Groups — users create groups, invite others by email; coupons scoped to a group | ⬜ |
-| 10 | Coupon code encryption — AES encryption at rest; key in `.env` now, KMS at scale | ⬜ |
-| 11 | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲 |
-| 12 | Per-user coupon permissions — finer-grained access control within groups | 🔲 |
-| 13 | DB backup — daily pg_dump to Cloudflare R2, manual restore script | ✅ |
-| 14 | Per-user supplier color — each user sets their own display color per supplier | ✅ |
+| #   | Stage                                                                                                   | Status |
+| --- | ------------------------------------------------------------------------------------------------------- | ------ |
+| 1   | Models — Supplier, Coupon, User                                                                         | ✅     |
+| 2   | JWT auth — register, login                                                                              | ✅     |
+| 3   | REST endpoints — suppliers, coupons, use/unuse                                                          | ✅     |
+| 4   | Email import — IMAP + body parser, manual trigger                                                       | ✅     |
+| 5   | Deployment — Docker Compose + Cloudflare Tunnel on Raspberry Pi                                         | ✅     |
+| 6   | Daily auto-import — APScheduler runs email import once a day                                            | ✅     |
+| 7   | Supplier logos                                                                                          | 🔲     |
+| 8   | UTC timestamps — TIMESTAMPTZ columns, timezone-aware responses                                          | ✅     |
+| 9   | Groups — users create groups, invite others by email; coupons scoped to a group                         | ⬜     |
+| 10  | Coupon code encryption — AES encryption at rest; key in `.env` now, KMS at scale                        | ⬜     |
+| 11  | Per-user email import — each user connects their own Gmail via OAuth; coupons imported into their group | 🔲     |
+| 12  | Per-user coupon permissions — finer-grained access control within groups                                | 🔲     |
+| 13  | DB backup — daily pg_dump to Cloudflare R2, manual restore script                                       | ✅     |
+| 14  | Per-user supplier color — each user sets their own display color per supplier                           | ✅     |
 
 ## Local Development
 
 ### Prerequisites
+
 - Docker Desktop
-- Python 3.14+
+- Python 3.13+
 - `make` (optional, for shorthand commands)
 
 ### Setup
@@ -163,4 +172,49 @@ make restore  # restore latest backup from R2
 
 ## Deployment
 
-Runs on a Raspberry Pi via Docker Compose. Public access via Cloudflare Tunnel — set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`.
+Target: Raspberry Pi 3 B+ running Raspberry Pi OS Lite 64-bit.
+
+### First-time setup
+
+1. Flash the Pi with Raspberry Pi OS Lite (64-bit) via Raspberry Pi Imager. Set hostname, username, password, and WiFi in the OS Customisation settings.
+
+2. SSH in and install Docker:
+
+```bash
+sudo apt-get update && sudo apt-get upgrade -y
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+logout
+```
+
+3. Re-SSH in, generate a deploy key and add it to GitHub:
+
+```bash
+ssh-keygen -t ed25519 -C "couponpi"
+cat ~/.ssh/id_ed25519.pub   # add to GitHub → Settings → SSH keys
+```
+
+4. Clone and configure:
+
+```bash
+git clone git@github.com:Coupon-Manager/Back.git coupon
+cd coupon
+cp .env.example .env
+nano .env   # fill in all values; generate SECRET_KEY with: openssl rand -hex 32
+```
+
+5. Build and start:
+
+```bash
+docker compose up --build
+```
+
+Public access is via Cloudflare Tunnel — set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`.
+
+### Updating
+
+```bash
+cd ~/coupon
+git pull
+docker compose up --build -d
+```
